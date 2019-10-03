@@ -61,7 +61,6 @@ pub mod lexer {
             }
         }
         if !buffer.is_empty() && state == ParserState::NUMBER {
-            let token = Token::new(&buffer);
             v.push(Token::new(&buffer).unwrap());
         } else {
             return Err("Invalid end of expression");
