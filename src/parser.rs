@@ -198,7 +198,7 @@ pub mod calculator {
 
     fn calculate(tokens: &Vec<Token>) -> Result<f64, &'static str> {
         let mut processing_numbers: Vec<f64> = Vec::new();
-        for t in tokens.iter() {
+        for t in tokens {
             if t.kind() == TokenType::Number {
                 processing_numbers.push(t.value());
             }
