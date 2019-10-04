@@ -547,48 +547,48 @@ mod calculator_tests {
 
     #[test]
     fn addition() {
-        assert_eq!(evaluate(&"2+5".to_string()).unwrap(), 7.0);
+        assert_eq!(evaluate("2+5").unwrap(), 7.0);
     }
 
     #[test]
     fn subtraction() {
-        assert_eq!(evaluate(&"2-5".to_string()).unwrap(), -3.0);
+        assert_eq!(evaluate("2-5").unwrap(), -3.0);
     }
 
     #[test]
     fn multiply() {
-        assert_eq!(evaluate(&"2*5".to_string()).unwrap(), 10.0);
+        assert_eq!(evaluate("2*5").unwrap(), 10.0);
     }
 
     #[test]
     fn division() {
-        assert_eq!(evaluate(&"6/2".to_string()).unwrap(), 3.0);
+        assert_eq!(evaluate("6/2").unwrap(), 3.0);
     }
 
     #[test]
     fn power() {
-        assert_eq!(evaluate(&"6^2".to_string()).unwrap(), 36.0);
+        assert_eq!(evaluate("6^2").unwrap(), 36.0);
     }
 
     #[test]
     fn negative_operand() {
-        assert_eq!(evaluate(&"2^-2".to_string()).unwrap(), 0.25);
-        assert_eq!(evaluate(&"3+-6".to_string()).unwrap(), -3.0);
-        assert_eq!(evaluate(&"6--2".to_string()).unwrap(), 8.0);
-        assert_eq!(evaluate(&"4*-2".to_string()).unwrap(), -8.0);
-        assert_eq!(evaluate(&"6/-2".to_string()).unwrap(), -3.0);
+        assert_eq!(evaluate("2^-2").unwrap(), 0.25);
+        assert_eq!(evaluate("3+-6").unwrap(), -3.0);
+        assert_eq!(evaluate("6--2").unwrap(), 8.0);
+        assert_eq!(evaluate("4*-2").unwrap(), -8.0);
+        assert_eq!(evaluate("6/-2").unwrap(), -3.0);
     }
 
     #[test]
     fn chained_expression() {
-        assert_eq!(evaluate(&"2+4-2*2/2^4".to_string()).unwrap(), 5.75);
+        assert_eq!(evaluate("2+4-2*2/2^4").unwrap(), 5.75);
     }
 
     #[test]
     fn associativity() {
-        assert_eq!(evaluate(&"2*3*4".to_string()).unwrap(), 24.0);
-        assert_eq!(evaluate(&"4-7-9".to_string()).unwrap(), -12.0);
-        assert_eq!(evaluate(&"18/3/2".to_string()).unwrap(), 3.0);
-        assert_eq!(evaluate(&"2^2^3".to_string()).unwrap(), 256.0);
+        assert_eq!(evaluate("2*3*4").unwrap(), 24.0);
+        assert_eq!(evaluate("4-7-9").unwrap(), -12.0);
+        assert_eq!(evaluate("18/3/2").unwrap(), 3.0);
+        assert_eq!(evaluate("2^2^3").unwrap(), 256.0);
     }
 }
