@@ -32,7 +32,7 @@ pub mod lexer {
         Number,
     }
 
-    pub fn tokenize(content: &String) -> Result<Vec<Token>, &'static str> {
+    pub fn tokenize(content: &str) -> Result<Vec<Token>, &'static str> {
         let mut v: Vec<Token> = Vec::new();
         let mut state = ParserState::NONE;
         let mut buffer = String::new();
@@ -196,7 +196,7 @@ pub mod lexer {
 pub mod calculator {
     use crate::parser::lexer::*;
 
-    pub fn evaluate(expression: &String) -> Result<f64, &'static str> {
+    pub fn evaluate(expression: &str) -> Result<f64, &'static str> {
         calculate(&shunting_yard(&tokenize(expression)?)?)
     }
 
@@ -209,26 +209,29 @@ pub mod calculator {
             if t.is_operator() {
                 let r_operand = processing_numbers.pop();
                 let l_operand = processing_numbers.pop();
-                if r_operand.is_some() && l_operand.is_some() {
-                    let result: f64 = match t.kind() {
-                        TokenType::Divide => l_operand.unwrap() / r_operand.unwrap(),
-                        TokenType::Multiply => l_operand.unwrap() * r_operand.unwrap(),
-                        TokenType::Minus => l_operand.unwrap() - r_operand.unwrap(),
-                        TokenType::Plus => l_operand.unwrap() + r_operand.unwrap(),
-                        TokenType::Power => l_operand.unwrap().powf(r_operand.unwrap()),
-                        _ => return Err("Can not have number on operation stack"),
-                    };
-                    processing_numbers.push(result);
+                if let Some(r_op) = r_operand {
+                    if let Some(l_op) = l_operand {
+                        let result: f64 = match t.kind() {
+                            TokenType::Divide => l_op / r_op,
+                            TokenType::Multiply => l_op * r_op,
+                            TokenType::Minus => l_op - r_op,
+                            TokenType::Plus => l_op + r_op,
+                            TokenType::Power => l_op.powf(r_op),
+                            _ => return Err("Can not have number on operation stack"),
+                        };
+                        processing_numbers.push(result);
+                    }
                 }
             }
         }
+    
 
-        if processing_numbers.len() == 1usize {
-            Ok(processing_numbers[0])
-        } else {
-            Err("Error parsing expresion")
-        }
+    if processing_numbers.len() == 1usize {
+        Ok(processing_numbers[0])
+    } else {
+        Err("Error parsing expresion")
     }
+}
 
     fn shunting_yard(tokens: &[Token]) -> Result<Vec<Token>, &'static str> {
         let mut reverse_notation: Vec<Token> = Vec::new();
@@ -369,34 +372,34 @@ mod lexer_tests {
 
     #[test]
     fn single_num() {
-        let v = tokenize(&String::from("123")).unwrap();
+        let v = tokenize("123").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
     }
 
     #[test]
     fn negative_num() {
-        let v = tokenize(&String::from("-123")).unwrap();
+        let v = tokenize("-123").unwrap();
         assert_eq!(v[0].value(), -123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
     }
 
     #[test]
     fn single_short_float() {
-        let v = tokenize(&String::from("123.")).unwrap();
+        let v = tokenize("123.").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
     }
 
     #[test]
     fn single_float() {
-        let v = tokenize(&String::from("123.34")).unwrap();
+        let v = tokenize("123.34").unwrap();
         assert_eq!(v[0].value(), 123.34f64);
         assert_eq!(v[0].kind(), TokenType::Number);
     }
     #[test]
     fn operator_plus() {
-        let v = tokenize(&String::from("123+54")).unwrap();
+        let v = tokenize("123+54").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
 
@@ -408,7 +411,7 @@ mod lexer_tests {
 
     #[test]
     fn operator_minus() {
-        let v = tokenize(&String::from("123-54")).unwrap();
+        let v = tokenize("123-54").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
 
@@ -420,7 +423,7 @@ mod lexer_tests {
 
     #[test]
     fn operator_mult() {
-        let v = tokenize(&String::from("123*54")).unwrap();
+        let v = tokenize("123*54").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
 
@@ -432,7 +435,7 @@ mod lexer_tests {
 
     #[test]
     fn operator_div() {
-        let v = tokenize(&String::from("123/54")).unwrap();
+        let v = tokenize("123/54").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
 
@@ -444,7 +447,7 @@ mod lexer_tests {
 
     #[test]
     fn operator_minus_num() {
-        let v = tokenize(&String::from("123*-54")).unwrap();
+        let v = tokenize("123*-54").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
 
@@ -456,7 +459,7 @@ mod lexer_tests {
 
     #[test]
     fn operator_chain() {
-        let v = tokenize(&String::from("123+54-2*3/6^4")).unwrap();
+        let v = tokenize("123+54-2*3/6^4").unwrap();
         assert_eq!(v[0].value(), 123f64);
         assert_eq!(v[0].kind(), TokenType::Number);
 
@@ -488,7 +491,7 @@ mod lexer_tests {
 
     #[test]
     fn simple_brackets() {
-        let v = tokenize(&String::from("(12+6)")).unwrap();
+        let v = tokenize("(12+6)").unwrap();
         assert_eq!(v[0].kind(), TokenType::OpeningParenthesis);
 
         assert_eq!(v[1].kind(), TokenType::Number);
@@ -504,7 +507,7 @@ mod lexer_tests {
 
     #[test]
     fn multiply_bracket() {
-        let v = tokenize(&String::from("2*(12+6)")).unwrap();
+        let v = tokenize("2*(12+6)").unwrap();
         assert_eq!(v[0].kind(), TokenType::Number);
         assert_eq!(v[0].value(), 2.0);
         assert_eq!(v[1].kind(), TokenType::Multiply);
@@ -524,7 +527,7 @@ mod lexer_tests {
 
     #[test]
     fn cascading_bracket() {
-        let v = tokenize(&String::from("(12+(3-(2*2)))")).unwrap();
+        let v = tokenize("(12+(3-(2*2)))").unwrap();
 
         assert_eq!(v[0].kind(), TokenType::OpeningParenthesis);
         assert_eq!(v[1].kind(), TokenType::Number);
