@@ -9,6 +9,8 @@ pub mod lexer {
         DIVIDE,
         POWER,
         NUMBER,
+        OPENING_PARENTHESIS,
+        CLOSING_PARENTHESIS
     }
     #[derive(PartialEq, Debug, Copy, Clone)]
     pub enum Associativity {
@@ -26,6 +28,7 @@ pub mod lexer {
     enum ParserState {
         NONE,
         OPERATOR,
+        PARENTHESIS,
         NUMBER,
     }
 
@@ -40,11 +43,16 @@ pub mod lexer {
             } else if state == ParserState::NUMBER {
                 if c.is_numeric() || c == '.' {
                     buffer.push(c);
-                } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+' {
+                } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+'{
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::OPERATOR;
+                } else if c == '(' || c == ')' {
+                    v.push(Token::new(&buffer).unwrap());
+                    buffer = String::new();
+                    buffer.push(c);
+                    state = ParserState::PARENTHESIS;
                 }
             } else if state == ParserState::OPERATOR {
                 if c == '-' || c.is_numeric() {
@@ -52,15 +60,41 @@ pub mod lexer {
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::NUMBER;
+                } else if c == '(' || c == ')' {
+                    v.push(Token::new(&buffer).unwrap());
+                    buffer = String::new();
+                    buffer.push(c);
+                    state = ParserState::PARENTHESIS;
+                }
+            } else if state == ParserState::PARENTHESIS{
+                if c == '-' || c.is_numeric(){
+                    v.push(Token::new(&buffer).unwrap());
+                    buffer = String::new();
+                    buffer.push(c);
+                    state = ParserState::NUMBER;
+                } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+' {
+                    v.push(Token::new(&buffer).unwrap());
+                    buffer = String::new();
+                    buffer.push(c);
+                    state = ParserState::OPERATOR;
+                } else if c == '(' || c == ')'{
+                    v.push(Token::new(&buffer).unwrap());
+                    buffer = String::new();
+                    buffer.push(c);
+                    state = ParserState::PARENTHESIS;
                 }
             } else if state == ParserState::NONE {
                 if c.is_numeric() || c == '-' {
                     buffer.push(c);
                     state = ParserState::NUMBER;
                 }
+                else if c == '(' {
+                    buffer.push(c);
+                    state = ParserState::PARENTHESIS;
+                }
             }
         }
-        if !buffer.is_empty() && state == ParserState::NUMBER {
+        if !buffer.is_empty() && (state == ParserState::NUMBER || state == ParserState::PARENTHESIS) {
             v.push(Token::new(&buffer).unwrap());
         } else {
             return Err("Invalid end of expression");
@@ -121,6 +155,20 @@ pub mod lexer {
                     precedence: 0,
                     associativity: Associativity::RIGHT,
                 })
+            } else if Regex::new(r"^\($").unwrap().is_match(content){
+                 Ok(Token {
+                    r#type: TokenType::OPENING_PARENTHESIS,
+                    value: 0f64,
+                    precedence: 0,
+                    associativity: Associativity::RIGHT,
+                })
+             } else if Regex::new(r"^\)$").unwrap().is_match(content){
+                 Ok(Token {
+                    r#type: TokenType::CLOSING_PARENTHESIS,
+                    value: 0f64,
+                    precedence: 0,
+                    associativity: Associativity::RIGHT,
+                })    
             } else {
                 let error = format!("Error creating new token with content: {}", content);
                 return Err(Box::leak(error.into_boxed_str()));
@@ -171,7 +219,7 @@ pub mod calculator {
                         TokenType::MINUS => l_operand.unwrap() - r_operand.unwrap(),
                         TokenType::PLUS => l_operand.unwrap() + r_operand.unwrap(),
                         TokenType::POWER => l_operand.unwrap().powf(r_operand.unwrap()),
-                        TokenType::NUMBER => return Err("Can not have number on operation stack"),
+                        _ => return Err("Can not have number on operation stack"),
                     };
                     processing_numbers.push(result);
                 }
@@ -192,6 +240,19 @@ pub mod calculator {
         for t in tokens.iter() {
             if t.get_type() == TokenType::NUMBER {
                 reverse_notation.push(*t);
+            }else if t.get_type() == TokenType::OPENING_PARENTHESIS{
+                stack.push(*t);
+            }else if t.get_type() == TokenType::CLOSING_PARENTHESIS{
+                while !stack.is_empty() && stack.last().unwrap().get_type() != TokenType::OPENING_PARENTHESIS 
+                {
+                    reverse_notation.push(stack.pop().unwrap());
+                }
+                if !stack.is_empty() && stack.last().unwrap().get_type() == TokenType::OPENING_PARENTHESIS
+                {
+                    stack.pop();
+                }else{
+                    return Err("Expected opening bracket");
+                }
             } else if t.is_operator() {
                 while !stack.is_empty()
                     && (stack.last().unwrap().get_precedence() > t.get_precedence()
@@ -426,6 +487,63 @@ mod lexer_tests {
         assert_eq!(v[10].get_value(), 4f64);
         assert_eq!(v[10].get_type(), TokenType::NUMBER);
     }
+
+    #[test]
+    fn simple_brackets() {
+        let v = tokenize(&String::from("(12+6)")).unwrap();
+        assert_eq!(v[0].get_type(), TokenType::OPENING_PARENTHESIS);
+
+        assert_eq!(v[1].get_type(), TokenType::NUMBER);
+        assert_eq!(v[1].get_value(), 12.0);
+
+        assert_eq!(v[2].get_type(), TokenType::PLUS);
+
+        assert_eq!(v[3].get_type(), TokenType::NUMBER);
+        assert_eq!(v[3].get_value(), 6.0);
+
+        assert_eq!(v[4].get_type(), TokenType::CLOSING_PARENTHESIS);
+    }
+
+    #[test]
+    fn multiply_bracket() {
+        let v = tokenize(&String::from("2*(12+6)")).unwrap();
+        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_value(), 2.0);
+        
+        assert_eq!(v[1].get_type(), TokenType::MULTIPLY);
+
+        assert_eq!(v[2].get_type(), TokenType::OPENING_PARENTHESIS);
+
+        assert_eq!(v[3].get_type(), TokenType::NUMBER);
+        assert_eq!(v[3].get_value(), 12.0);
+
+        assert_eq!(v[4].get_type(), TokenType::PLUS);
+
+        assert_eq!(v[5].get_type(), TokenType::NUMBER);
+        assert_eq!(v[5].get_value(), 6.0);
+
+        assert_eq!(v[6].get_type(), TokenType::CLOSING_PARENTHESIS);
+    }
+
+    #[test]
+    fn cascading_bracket() {
+        let v = tokenize(&String::from("(12+(3-(2*2)))")).unwrap();
+
+        assert_eq!(v[0].get_type(), TokenType::OPENING_PARENTHESIS);
+        assert_eq!(v[1].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::PLUS);
+        assert_eq!(v[3].get_type(), TokenType::OPENING_PARENTHESIS);
+        assert_eq!(v[4].get_type(), TokenType::NUMBER);
+        assert_eq!(v[5].get_type(), TokenType::MINUS);
+        assert_eq!(v[6].get_type(), TokenType::OPENING_PARENTHESIS);
+        assert_eq!(v[7].get_type(), TokenType::NUMBER);
+        assert_eq!(v[8].get_type(), TokenType::MULTIPLY);
+        assert_eq!(v[9].get_type(), TokenType::NUMBER);
+        assert_eq!(v[10].get_type(), TokenType::CLOSING_PARENTHESIS);
+        assert_eq!(v[11].get_type(), TokenType::CLOSING_PARENTHESIS);
+        assert_eq!(v[12].get_type(), TokenType::CLOSING_PARENTHESIS);
+    }
+
 }
 
 #[cfg(test)]
