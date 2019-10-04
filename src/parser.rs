@@ -10,7 +10,7 @@ pub mod lexer {
         Power,
         Number,
         OpeningParenthesis,
-        ClosingParaenthesis
+        ClosingParaenthesis,
     }
     #[derive(PartialEq, Debug, Copy, Clone)]
     pub enum Associativity {
@@ -43,7 +43,7 @@ pub mod lexer {
             } else if state == ParserState::Number {
                 if c.is_numeric() || c == '.' {
                     buffer.push(c);
-                } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+'{
+                } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+' {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
                     buffer.push(c);
@@ -66,8 +66,8 @@ pub mod lexer {
                     buffer.push(c);
                     state = ParserState::PARENTHESIS;
                 }
-            } else if state == ParserState::PARENTHESIS{
-                if c == '-' || c.is_numeric(){
+            } else if state == ParserState::PARENTHESIS {
+                if c == '-' || c.is_numeric() {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
                     buffer.push(c);
@@ -77,7 +77,7 @@ pub mod lexer {
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::OPERATOR;
-                } else if c == '(' || c == ')'{
+                } else if c == '(' || c == ')' {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
                     buffer.push(c);
@@ -87,14 +87,14 @@ pub mod lexer {
                 if c.is_numeric() || c == '-' {
                     buffer.push(c);
                     state = ParserState::Number;
-                }
-                else if c == '(' {
+                } else if c == '(' {
                     buffer.push(c);
                     state = ParserState::PARENTHESIS;
                 }
             }
         }
-        if !buffer.is_empty() && (state == ParserState::Number || state == ParserState::PARENTHESIS) {
+        if !buffer.is_empty() && (state == ParserState::Number || state == ParserState::PARENTHESIS)
+        {
             v.push(Token::new(&buffer).unwrap());
         } else {
             return Err("Invalid end of expression");
@@ -105,10 +105,14 @@ pub mod lexer {
 
     impl Token {
         pub fn is_operator(&self) -> bool {
-           match self.kind() {
-            TokenType::Divide | TokenType::Multiply | TokenType::Plus | TokenType::Minus | TokenType::Power => true,
-            _ => false,
-           }
+            match self.kind() {
+                TokenType::Divide
+                | TokenType::Multiply
+                | TokenType::Plus
+                | TokenType::Minus
+                | TokenType::Power => true,
+                _ => false,
+            }
         }
 
         pub fn new(content: &str) -> Result<Token, &'static str> {
@@ -154,20 +158,20 @@ pub mod lexer {
                     precedence: 0,
                     associativity: Associativity::Right,
                 })
-            } else if Regex::new(r"^\($").unwrap().is_match(content){
-                 Ok(Token {
+            } else if Regex::new(r"^\($").unwrap().is_match(content) {
+                Ok(Token {
                     r#type: TokenType::OpeningParenthesis,
                     value: 0f64,
                     precedence: 0,
                     associativity: Associativity::Right,
                 })
-             } else if Regex::new(r"^\)$").unwrap().is_match(content){
-                 Ok(Token {
+            } else if Regex::new(r"^\)$").unwrap().is_match(content) {
+                Ok(Token {
                     r#type: TokenType::ClosingParaenthesis,
                     value: 0f64,
                     precedence: 0,
                     associativity: Associativity::Right,
-                })    
+                })
             } else {
                 let error = format!("Error creating new token with content: {}", content);
                 Err(Box::leak(error.into_boxed_str()))
@@ -233,17 +237,19 @@ pub mod calculator {
         for t in tokens.iter() {
             if t.kind() == TokenType::Number {
                 reverse_notation.push(*t);
-            }else if t.kind() == TokenType::OpeningParenthesis{
+            } else if t.kind() == TokenType::OpeningParenthesis {
                 stack.push(*t);
-            }else if t.kind() == TokenType::ClosingParaenthesis{
-                while !stack.is_empty() && stack.last().unwrap().kind() != TokenType::OpeningParenthesis 
+            } else if t.kind() == TokenType::ClosingParaenthesis {
+                while !stack.is_empty()
+                    && stack.last().unwrap().kind() != TokenType::OpeningParenthesis
                 {
                     reverse_notation.push(stack.pop().unwrap());
                 }
-                if !stack.is_empty() && stack.last().unwrap().kind() == TokenType::OpeningParenthesis
+                if !stack.is_empty()
+                    && stack.last().unwrap().kind() == TokenType::OpeningParenthesis
                 {
                     stack.pop();
-                }else{
+                } else {
                     return Err("Expected opening bracket");
                 }
             } else if t.is_operator() {
@@ -264,7 +270,6 @@ pub mod calculator {
         Ok(reverse_notation)
     }
 }
-
 
 #[cfg(test)]
 mod lexer_tests {
@@ -502,7 +507,6 @@ mod lexer_tests {
         let v = tokenize(&String::from("2*(12+6)")).unwrap();
         assert_eq!(v[0].kind(), TokenType::Number);
         assert_eq!(v[0].value(), 2.0);
-        
         assert_eq!(v[1].kind(), TokenType::Multiply);
 
         assert_eq!(v[2].kind(), TokenType::OpeningParenthesis);
@@ -536,7 +540,6 @@ mod lexer_tests {
         assert_eq!(v[11].kind(), TokenType::ClosingParaenthesis);
         assert_eq!(v[12].kind(), TokenType::ClosingParaenthesis);
     }
-
 }
 
 #[cfg(test)]
