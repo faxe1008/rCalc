@@ -3,19 +3,19 @@ pub mod lexer {
 
     #[derive(PartialEq, Debug, Copy, Clone)]
     pub enum TokenType {
-        PLUS,
-        MINUS,
-        MULTIPLY,
-        DIVIDE,
-        POWER,
-        NUMBER,
-        OPENING_PARENTHESIS,
-        CLOSING_PARENTHESIS
+        Plus,
+        Minus,
+        Multiply,
+        Divide,
+        Power,
+        Number,
+        OpeningParenthesis,
+        ClosingParaenthesis
     }
     #[derive(PartialEq, Debug, Copy, Clone)]
     pub enum Associativity {
-        LEFT,
-        RIGHT,
+        Left,
+        Right,
     }
     #[derive(Debug, PartialEq, Copy, Clone)]
     pub struct Token {
@@ -29,7 +29,7 @@ pub mod lexer {
         NONE,
         OPERATOR,
         PARENTHESIS,
-        NUMBER,
+        Number,
     }
 
     pub fn tokenize(content: &String) -> Result<Vec<Token>, &'static str> {
@@ -40,7 +40,7 @@ pub mod lexer {
             if c.is_alphabetic() {
                 let error = format!("Invalid character: {}", c);
                 return Err(Box::leak(error.into_boxed_str()));
-            } else if state == ParserState::NUMBER {
+            } else if state == ParserState::Number {
                 if c.is_numeric() || c == '.' {
                     buffer.push(c);
                 } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+'{
@@ -59,7 +59,7 @@ pub mod lexer {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
                     buffer.push(c);
-                    state = ParserState::NUMBER;
+                    state = ParserState::Number;
                 } else if c == '(' || c == ')' {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
@@ -71,7 +71,7 @@ pub mod lexer {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
                     buffer.push(c);
-                    state = ParserState::NUMBER;
+                    state = ParserState::Number;
                 } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+' {
                     v.push(Token::new(&buffer).unwrap());
                     buffer = String::new();
@@ -86,7 +86,7 @@ pub mod lexer {
             } else if state == ParserState::NONE {
                 if c.is_numeric() || c == '-' {
                     buffer.push(c);
-                    state = ParserState::NUMBER;
+                    state = ParserState::Number;
                 }
                 else if c == '(' {
                     buffer.push(c);
@@ -94,7 +94,7 @@ pub mod lexer {
                 }
             }
         }
-        if !buffer.is_empty() && (state == ParserState::NUMBER || state == ParserState::PARENTHESIS) {
+        if !buffer.is_empty() && (state == ParserState::Number || state == ParserState::PARENTHESIS) {
             v.push(Token::new(&buffer).unwrap());
         } else {
             return Err("Invalid end of expression");
@@ -106,7 +106,7 @@ pub mod lexer {
     impl Token {
         pub fn is_operator(&self) -> bool {
            match self.get_type() {
-            TokenType::DIVIDE | TokenType::MULTIPLY | TokenType::PLUS | TokenType::MINUS | TokenType::POWER => true,
+            TokenType::Divide | TokenType::Multiply | TokenType::Plus | TokenType::Minus | TokenType::Power => true,
             _ => false,
            }
         }
@@ -114,59 +114,59 @@ pub mod lexer {
         pub fn new(content: &str) -> Result<Token, &'static str> {
             if Regex::new(r"^\+$").unwrap().is_match(content) {
                 Ok(Token {
-                    r#type: TokenType::PLUS,
+                    r#type: TokenType::Plus,
                     value: 0f64,
                     precedence: 2,
-                    associativity: Associativity::LEFT,
+                    associativity: Associativity::Left,
                 })
             } else if Regex::new(r"^\-$").unwrap().is_match(content) {
                 Ok(Token {
-                    r#type: TokenType::MINUS,
+                    r#type: TokenType::Minus,
                     value: 0f64,
                     precedence: 2,
-                    associativity: Associativity::LEFT,
+                    associativity: Associativity::Left,
                 })
             } else if Regex::new(r"^\*$").unwrap().is_match(content) {
                 Ok(Token {
-                    r#type: TokenType::MULTIPLY,
+                    r#type: TokenType::Multiply,
                     value: 0f64,
                     precedence: 3,
-                    associativity: Associativity::LEFT,
+                    associativity: Associativity::Left,
                 })
             } else if Regex::new(r"^/$").unwrap().is_match(content) {
                 Ok(Token {
-                    r#type: TokenType::DIVIDE,
+                    r#type: TokenType::Divide,
                     value: 0f64,
                     precedence: 3,
-                    associativity: Associativity::LEFT,
+                    associativity: Associativity::Left,
                 })
             } else if Regex::new(r"^\^$").unwrap().is_match(content) {
                 Ok(Token {
-                    r#type: TokenType::POWER,
+                    r#type: TokenType::Power,
                     value: 0f64,
                     precedence: 4,
-                    associativity: Associativity::RIGHT,
+                    associativity: Associativity::Right,
                 })
             } else if Regex::new(r"^-?\d+\.?\d*$").unwrap().is_match(content) {
                 Ok(Token {
-                    r#type: TokenType::NUMBER,
+                    r#type: TokenType::Number,
                     value: content.parse().expect("number required"),
                     precedence: 0,
-                    associativity: Associativity::RIGHT,
+                    associativity: Associativity::Right,
                 })
             } else if Regex::new(r"^\($").unwrap().is_match(content){
                  Ok(Token {
-                    r#type: TokenType::OPENING_PARENTHESIS,
+                    r#type: TokenType::OpeningParenthesis,
                     value: 0f64,
                     precedence: 0,
-                    associativity: Associativity::RIGHT,
+                    associativity: Associativity::Right,
                 })
              } else if Regex::new(r"^\)$").unwrap().is_match(content){
                  Ok(Token {
-                    r#type: TokenType::CLOSING_PARENTHESIS,
+                    r#type: TokenType::ClosingParaenthesis,
                     value: 0f64,
                     precedence: 0,
-                    associativity: Associativity::RIGHT,
+                    associativity: Associativity::Right,
                 })    
             } else {
                 let error = format!("Error creating new token with content: {}", content);
@@ -205,7 +205,7 @@ pub mod calculator {
     fn calculate(tokens: &Vec<Token>) -> Result<f64, &'static str> {
         let mut processing_numbers: Vec<f64> = Vec::new();
         for t in tokens.iter() {
-            if t.get_type() == TokenType::NUMBER {
+            if t.get_type() == TokenType::Number {
                 processing_numbers.push(t.get_value());
             }
             if t.is_operator() {
@@ -213,11 +213,11 @@ pub mod calculator {
                 let l_operand = processing_numbers.pop();
                 if r_operand.is_some() && l_operand.is_some() {
                     let result: f64 = match t.get_type() {
-                        TokenType::DIVIDE => l_operand.unwrap() / r_operand.unwrap(),
-                        TokenType::MULTIPLY => l_operand.unwrap() * r_operand.unwrap(),
-                        TokenType::MINUS => l_operand.unwrap() - r_operand.unwrap(),
-                        TokenType::PLUS => l_operand.unwrap() + r_operand.unwrap(),
-                        TokenType::POWER => l_operand.unwrap().powf(r_operand.unwrap()),
+                        TokenType::Divide => l_operand.unwrap() / r_operand.unwrap(),
+                        TokenType::Multiply => l_operand.unwrap() * r_operand.unwrap(),
+                        TokenType::Minus => l_operand.unwrap() - r_operand.unwrap(),
+                        TokenType::Plus => l_operand.unwrap() + r_operand.unwrap(),
+                        TokenType::Power => l_operand.unwrap().powf(r_operand.unwrap()),
                         _ => return Err("Can not have number on operation stack"),
                     };
                     processing_numbers.push(result);
@@ -237,16 +237,16 @@ pub mod calculator {
         let mut stack: Vec<Token> = Vec::new();
 
         for t in tokens.iter() {
-            if t.get_type() == TokenType::NUMBER {
+            if t.get_type() == TokenType::Number {
                 reverse_notation.push(*t);
-            }else if t.get_type() == TokenType::OPENING_PARENTHESIS{
+            }else if t.get_type() == TokenType::OpeningParenthesis{
                 stack.push(*t);
-            }else if t.get_type() == TokenType::CLOSING_PARENTHESIS{
-                while !stack.is_empty() && stack.last().unwrap().get_type() != TokenType::OPENING_PARENTHESIS 
+            }else if t.get_type() == TokenType::ClosingParaenthesis{
+                while !stack.is_empty() && stack.last().unwrap().get_type() != TokenType::OpeningParenthesis 
                 {
                     reverse_notation.push(stack.pop().unwrap());
                 }
-                if !stack.is_empty() && stack.last().unwrap().get_type() == TokenType::OPENING_PARENTHESIS
+                if !stack.is_empty() && stack.last().unwrap().get_type() == TokenType::OpeningParenthesis
                 {
                     stack.pop();
                 }else{
@@ -256,7 +256,7 @@ pub mod calculator {
                 while !stack.is_empty()
                     && (stack.last().unwrap().get_precedence() > t.get_precedence()
                         || (stack.last().unwrap().get_precedence() == t.get_precedence()
-                            && stack.last().unwrap().get_associativity() == Associativity::LEFT))
+                            && stack.last().unwrap().get_associativity() == Associativity::Left))
                 {
                     reverse_notation.push(stack.pop().unwrap());
                 }
@@ -281,9 +281,9 @@ mod lexer_tests {
         let plus: String = String::from("+");
         let token = Token::new(&plus).unwrap();
 
-        assert_eq!(token.get_associativity(), Associativity::LEFT);
+        assert_eq!(token.get_associativity(), Associativity::Left);
         assert_eq!(token.get_precedence(), 2);
-        assert_eq!(token.get_type(), TokenType::PLUS);
+        assert_eq!(token.get_type(), TokenType::Plus);
     }
 
     #[test]
@@ -291,9 +291,9 @@ mod lexer_tests {
         let minus: String = String::from("-");
         let token = Token::new(&minus).unwrap();
 
-        assert_eq!(token.get_associativity(), Associativity::LEFT);
+        assert_eq!(token.get_associativity(), Associativity::Left);
         assert_eq!(token.get_precedence(), 2);
-        assert_eq!(token.get_type(), TokenType::MINUS);
+        assert_eq!(token.get_type(), TokenType::Minus);
     }
 
     #[test]
@@ -301,18 +301,18 @@ mod lexer_tests {
         let mult: String = String::from("*");
         let token = Token::new(&mult).unwrap();
 
-        assert_eq!(token.get_associativity(), Associativity::LEFT);
+        assert_eq!(token.get_associativity(), Associativity::Left);
         assert_eq!(token.get_precedence(), 3);
-        assert_eq!(token.get_type(), TokenType::MULTIPLY);
+        assert_eq!(token.get_type(), TokenType::Multiply);
     }
     #[test]
     fn valid_divide() {
         let div: String = String::from("/");
         let token = Token::new(&div).unwrap();
 
-        assert_eq!(token.get_associativity(), Associativity::LEFT);
+        assert_eq!(token.get_associativity(), Associativity::Left);
         assert_eq!(token.get_precedence(), 3);
-        assert_eq!(token.get_type(), TokenType::DIVIDE);
+        assert_eq!(token.get_type(), TokenType::Divide);
     }
 
     #[test]
@@ -320,9 +320,9 @@ mod lexer_tests {
         let pow: String = String::from("^");
         let token = Token::new(&pow).unwrap();
 
-        assert_eq!(token.get_associativity(), Associativity::RIGHT);
+        assert_eq!(token.get_associativity(), Associativity::Right);
         assert_eq!(token.get_precedence(), 4);
-        assert_eq!(token.get_type(), TokenType::POWER);
+        assert_eq!(token.get_type(), TokenType::Power);
     }
 
     #[test]
@@ -330,7 +330,7 @@ mod lexer_tests {
         let c: String = String::from("324");
         let token = Token::new(&c).unwrap();
 
-        assert_eq!(token.get_type(), TokenType::NUMBER);
+        assert_eq!(token.get_type(), TokenType::Number);
         assert_eq!(token.get_value(), 324f64);
     }
 
@@ -339,7 +339,7 @@ mod lexer_tests {
         let c: String = String::from("324.");
         let token = Token::new(&c).unwrap();
 
-        assert_eq!(token.get_type(), TokenType::NUMBER);
+        assert_eq!(token.get_type(), TokenType::Number);
         assert_eq!(token.get_value(), 324f64);
     }
 
@@ -348,7 +348,7 @@ mod lexer_tests {
         let c: String = String::from("324.34532342");
         let token = Token::new(&c).unwrap();
 
-        assert_eq!(token.get_type(), TokenType::NUMBER);
+        assert_eq!(token.get_type(), TokenType::Number);
         assert_eq!(token.get_value(), 324.34532342f64);
     }
 
@@ -357,7 +357,7 @@ mod lexer_tests {
         let c: String = String::from("-324.34532342");
         let token = Token::new(&c).unwrap();
 
-        assert_eq!(token.get_type(), TokenType::NUMBER);
+        assert_eq!(token.get_type(), TokenType::Number);
         assert_eq!(token.get_value(), -324.34532342f64);
     }
 
@@ -372,175 +372,175 @@ mod lexer_tests {
     fn single_num() {
         let v = tokenize(&String::from("123")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
     }
 
     #[test]
     fn negative_num() {
         let v = tokenize(&String::from("-123")).unwrap();
         assert_eq!(v[0].get_value(), -123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
     }
 
     #[test]
     fn single_short_float() {
         let v = tokenize(&String::from("123.")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
     }
 
     #[test]
     fn single_float() {
         let v = tokenize(&String::from("123.34")).unwrap();
         assert_eq!(v[0].get_value(), 123.34f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
     }
     #[test]
     fn operator_plus() {
         let v = tokenize(&String::from("123+54")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
 
-        assert_eq!(v[1].get_type(), TokenType::PLUS);
+        assert_eq!(v[1].get_type(), TokenType::Plus);
 
         assert_eq!(v[2].get_value(), 54f64);
-        assert_eq!(v[2].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::Number);
     }
 
     #[test]
     fn operator_minus() {
         let v = tokenize(&String::from("123-54")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
 
-        assert_eq!(v[1].get_type(), TokenType::MINUS);
+        assert_eq!(v[1].get_type(), TokenType::Minus);
 
         assert_eq!(v[2].get_value(), 54f64);
-        assert_eq!(v[2].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::Number);
     }
 
     #[test]
     fn operator_mult() {
         let v = tokenize(&String::from("123*54")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
 
-        assert_eq!(v[1].get_type(), TokenType::MULTIPLY);
+        assert_eq!(v[1].get_type(), TokenType::Multiply);
 
         assert_eq!(v[2].get_value(), 54f64);
-        assert_eq!(v[2].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::Number);
     }
 
     #[test]
     fn operator_div() {
         let v = tokenize(&String::from("123/54")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
 
-        assert_eq!(v[1].get_type(), TokenType::DIVIDE);
+        assert_eq!(v[1].get_type(), TokenType::Divide);
 
         assert_eq!(v[2].get_value(), 54f64);
-        assert_eq!(v[2].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::Number);
     }
 
     #[test]
     fn operator_minus_num() {
         let v = tokenize(&String::from("123*-54")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
 
-        assert_eq!(v[1].get_type(), TokenType::MULTIPLY);
+        assert_eq!(v[1].get_type(), TokenType::Multiply);
 
         assert_eq!(v[2].get_value(), -54f64);
-        assert_eq!(v[2].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::Number);
     }
 
     #[test]
     fn operator_chain() {
         let v = tokenize(&String::from("123+54-2*3/6^4")).unwrap();
         assert_eq!(v[0].get_value(), 123f64);
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
 
-        assert_eq!(v[1].get_type(), TokenType::PLUS);
+        assert_eq!(v[1].get_type(), TokenType::Plus);
 
         assert_eq!(v[2].get_value(), 54f64);
-        assert_eq!(v[2].get_type(), TokenType::NUMBER);
+        assert_eq!(v[2].get_type(), TokenType::Number);
 
-        assert_eq!(v[3].get_type(), TokenType::MINUS);
+        assert_eq!(v[3].get_type(), TokenType::Minus);
 
         assert_eq!(v[4].get_value(), 2f64);
-        assert_eq!(v[4].get_type(), TokenType::NUMBER);
+        assert_eq!(v[4].get_type(), TokenType::Number);
 
-        assert_eq!(v[5].get_type(), TokenType::MULTIPLY);
+        assert_eq!(v[5].get_type(), TokenType::Multiply);
 
         assert_eq!(v[6].get_value(), 3f64);
-        assert_eq!(v[6].get_type(), TokenType::NUMBER);
+        assert_eq!(v[6].get_type(), TokenType::Number);
 
-        assert_eq!(v[7].get_type(), TokenType::DIVIDE);
+        assert_eq!(v[7].get_type(), TokenType::Divide);
 
         assert_eq!(v[8].get_value(), 6f64);
-        assert_eq!(v[8].get_type(), TokenType::NUMBER);
+        assert_eq!(v[8].get_type(), TokenType::Number);
 
-        assert_eq!(v[9].get_type(), TokenType::POWER);
+        assert_eq!(v[9].get_type(), TokenType::Power);
 
         assert_eq!(v[10].get_value(), 4f64);
-        assert_eq!(v[10].get_type(), TokenType::NUMBER);
+        assert_eq!(v[10].get_type(), TokenType::Number);
     }
 
     #[test]
     fn simple_brackets() {
         let v = tokenize(&String::from("(12+6)")).unwrap();
-        assert_eq!(v[0].get_type(), TokenType::OPENING_PARENTHESIS);
+        assert_eq!(v[0].get_type(), TokenType::OpeningParenthesis);
 
-        assert_eq!(v[1].get_type(), TokenType::NUMBER);
+        assert_eq!(v[1].get_type(), TokenType::Number);
         assert_eq!(v[1].get_value(), 12.0);
 
-        assert_eq!(v[2].get_type(), TokenType::PLUS);
+        assert_eq!(v[2].get_type(), TokenType::Plus);
 
-        assert_eq!(v[3].get_type(), TokenType::NUMBER);
+        assert_eq!(v[3].get_type(), TokenType::Number);
         assert_eq!(v[3].get_value(), 6.0);
 
-        assert_eq!(v[4].get_type(), TokenType::CLOSING_PARENTHESIS);
+        assert_eq!(v[4].get_type(), TokenType::ClosingParaenthesis);
     }
 
     #[test]
     fn multiply_bracket() {
         let v = tokenize(&String::from("2*(12+6)")).unwrap();
-        assert_eq!(v[0].get_type(), TokenType::NUMBER);
+        assert_eq!(v[0].get_type(), TokenType::Number);
         assert_eq!(v[0].get_value(), 2.0);
         
-        assert_eq!(v[1].get_type(), TokenType::MULTIPLY);
+        assert_eq!(v[1].get_type(), TokenType::Multiply);
 
-        assert_eq!(v[2].get_type(), TokenType::OPENING_PARENTHESIS);
+        assert_eq!(v[2].get_type(), TokenType::OpeningParenthesis);
 
-        assert_eq!(v[3].get_type(), TokenType::NUMBER);
+        assert_eq!(v[3].get_type(), TokenType::Number);
         assert_eq!(v[3].get_value(), 12.0);
 
-        assert_eq!(v[4].get_type(), TokenType::PLUS);
+        assert_eq!(v[4].get_type(), TokenType::Plus);
 
-        assert_eq!(v[5].get_type(), TokenType::NUMBER);
+        assert_eq!(v[5].get_type(), TokenType::Number);
         assert_eq!(v[5].get_value(), 6.0);
 
-        assert_eq!(v[6].get_type(), TokenType::CLOSING_PARENTHESIS);
+        assert_eq!(v[6].get_type(), TokenType::ClosingParaenthesis);
     }
 
     #[test]
     fn cascading_bracket() {
         let v = tokenize(&String::from("(12+(3-(2*2)))")).unwrap();
 
-        assert_eq!(v[0].get_type(), TokenType::OPENING_PARENTHESIS);
-        assert_eq!(v[1].get_type(), TokenType::NUMBER);
-        assert_eq!(v[2].get_type(), TokenType::PLUS);
-        assert_eq!(v[3].get_type(), TokenType::OPENING_PARENTHESIS);
-        assert_eq!(v[4].get_type(), TokenType::NUMBER);
-        assert_eq!(v[5].get_type(), TokenType::MINUS);
-        assert_eq!(v[6].get_type(), TokenType::OPENING_PARENTHESIS);
-        assert_eq!(v[7].get_type(), TokenType::NUMBER);
-        assert_eq!(v[8].get_type(), TokenType::MULTIPLY);
-        assert_eq!(v[9].get_type(), TokenType::NUMBER);
-        assert_eq!(v[10].get_type(), TokenType::CLOSING_PARENTHESIS);
-        assert_eq!(v[11].get_type(), TokenType::CLOSING_PARENTHESIS);
-        assert_eq!(v[12].get_type(), TokenType::CLOSING_PARENTHESIS);
+        assert_eq!(v[0].get_type(), TokenType::OpeningParenthesis);
+        assert_eq!(v[1].get_type(), TokenType::Number);
+        assert_eq!(v[2].get_type(), TokenType::Plus);
+        assert_eq!(v[3].get_type(), TokenType::OpeningParenthesis);
+        assert_eq!(v[4].get_type(), TokenType::Number);
+        assert_eq!(v[5].get_type(), TokenType::Minus);
+        assert_eq!(v[6].get_type(), TokenType::OpeningParenthesis);
+        assert_eq!(v[7].get_type(), TokenType::Number);
+        assert_eq!(v[8].get_type(), TokenType::Multiply);
+        assert_eq!(v[9].get_type(), TokenType::Number);
+        assert_eq!(v[10].get_type(), TokenType::ClosingParaenthesis);
+        assert_eq!(v[11].get_type(), TokenType::ClosingParaenthesis);
+        assert_eq!(v[12].get_type(), TokenType::ClosingParaenthesis);
     }
 
 }
