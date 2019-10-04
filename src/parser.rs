@@ -44,41 +44,41 @@ pub mod lexer {
                 if c.is_numeric() || c == '.' {
                     buffer.push(c);
                 } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+' {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::OPERATOR;
                 } else if c == '(' || c == ')' {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::PARENTHESIS;
                 }
             } else if state == ParserState::OPERATOR {
                 if c == '-' || c.is_numeric() {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::Number;
                 } else if c == '(' || c == ')' {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::PARENTHESIS;
                 }
             } else if state == ParserState::PARENTHESIS {
                 if c == '-' || c.is_numeric() {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::Number;
                 } else if c == '^' || c == '*' || c == '/' || c == '-' || c == '+' {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::OPERATOR;
                 } else if c == '(' || c == ')' {
-                    v.push(Token::new(&buffer).unwrap());
+                    v.push(Token::new(&buffer)?);
                     buffer = String::new();
                     buffer.push(c);
                     state = ParserState::PARENTHESIS;
@@ -95,7 +95,7 @@ pub mod lexer {
         }
         if !buffer.is_empty() && (state == ParserState::Number || state == ParserState::PARENTHESIS)
         {
-            v.push(Token::new(&buffer).unwrap());
+            v.push(Token::new(&buffer)?);
         } else {
             return Err("Invalid end of expression");
         }
@@ -116,35 +116,35 @@ pub mod lexer {
         }
 
         pub fn new(content: &str) -> Result<Token, &'static str> {
-            if Regex::new(r"^\+$").unwrap().is_match(content) {
+            if content == "+" {
                 Ok(Token {
                     r#type: TokenType::Plus,
                     value: 0f64,
                     precedence: 2,
                     associativity: Associativity::Left,
                 })
-            } else if Regex::new(r"^\-$").unwrap().is_match(content) {
+            } else if content == "-" {
                 Ok(Token {
                     r#type: TokenType::Minus,
                     value: 0f64,
                     precedence: 2,
                     associativity: Associativity::Left,
                 })
-            } else if Regex::new(r"^\*$").unwrap().is_match(content) {
+            } else if content == "*" {
                 Ok(Token {
                     r#type: TokenType::Multiply,
                     value: 0f64,
                     precedence: 3,
                     associativity: Associativity::Left,
                 })
-            } else if Regex::new(r"^/$").unwrap().is_match(content) {
+            } else if content == "/" {
                 Ok(Token {
                     r#type: TokenType::Divide,
                     value: 0f64,
                     precedence: 3,
                     associativity: Associativity::Left,
                 })
-            } else if Regex::new(r"^\^$").unwrap().is_match(content) {
+            } else if content == "^" {
                 Ok(Token {
                     r#type: TokenType::Power,
                     value: 0f64,
@@ -158,14 +158,14 @@ pub mod lexer {
                     precedence: 0,
                     associativity: Associativity::Right,
                 })
-            } else if Regex::new(r"^\($").unwrap().is_match(content) {
+            } else if content == "(" {
                 Ok(Token {
                     r#type: TokenType::OpeningParenthesis,
                     value: 0f64,
                     precedence: 0,
                     associativity: Associativity::Right,
                 })
-            } else if Regex::new(r"^\)$").unwrap().is_match(content) {
+            } else if content == ")" {
                 Ok(Token {
                     r#type: TokenType::ClosingParaenthesis,
                     value: 0f64,
@@ -200,7 +200,7 @@ pub mod calculator {
         calculate(&shunting_yard(&tokenize(expression)?)?)
     }
 
-    fn calculate(tokens: &Vec<Token>) -> Result<f64, &'static str> {
+    fn calculate(tokens: &[Token]) -> Result<f64, &'static str> {
         let mut processing_numbers: Vec<f64> = Vec::new();
         for t in tokens {
             if t.kind() == TokenType::Number {
@@ -230,7 +230,7 @@ pub mod calculator {
         }
     }
 
-    fn shunting_yard(tokens: &Vec<Token>) -> Result<Vec<Token>, &'static str> {
+    fn shunting_yard(tokens: &[Token]) -> Result<Vec<Token>, &'static str> {
         let mut reverse_notation: Vec<Token> = Vec::new();
         let mut stack: Vec<Token> = Vec::new();
 
