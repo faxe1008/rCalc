@@ -100,16 +100,15 @@ pub mod lexer {
             return Err("Invalid end of expression");
         }
 
-        return Ok(v);
+        Ok(v)
     }
 
     impl Token {
         pub fn is_operator(&self) -> bool {
-            self.get_type() == TokenType::DIVIDE
-                || self.get_type() == TokenType::MULTIPLY
-                || self.get_type() == TokenType::PLUS
-                || self.get_type() == TokenType::MINUS
-                || self.get_type() == TokenType::POWER
+           match self.get_type() {
+            TokenType::DIVIDE | TokenType::MULTIPLY | TokenType::PLUS | TokenType::MINUS | TokenType::POWER => true,
+            _ => false,
+           }
         }
 
         pub fn new(content: &str) -> Result<Token, &'static str> {
@@ -171,7 +170,7 @@ pub mod lexer {
                 })    
             } else {
                 let error = format!("Error creating new token with content: {}", content);
-                return Err(Box::leak(error.into_boxed_str()));
+                Err(Box::leak(error.into_boxed_str()))
             }
         }
 

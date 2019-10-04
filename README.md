@@ -8,6 +8,8 @@ Simple command line calculator in rust
 1*2
 1/2
 1^2
+1+5.
+1+5.23
 1+-2
 1--2
 1*-2
