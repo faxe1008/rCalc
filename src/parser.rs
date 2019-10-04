@@ -10,7 +10,7 @@ pub mod lexer {
         Power,
         Number,
         OpeningParenthesis,
-        ClosingParaenthesis,
+        ClosingParenthesis,
     }
     #[derive(PartialEq, Debug, Copy, Clone)]
     pub enum Associativity {
@@ -167,7 +167,7 @@ pub mod lexer {
                 })
             } else if content == ")" {
                 Ok(Token {
-                    r#type: TokenType::ClosingParaenthesis,
+                    r#type: TokenType::ClosingParenthesis,
                     value: 0f64,
                     precedence: 0,
                     associativity: Associativity::Right,
@@ -238,7 +238,7 @@ pub mod calculator {
                 reverse_notation.push(*t);
             } else if t.kind() == TokenType::OpeningParenthesis {
                 stack.push(*t);
-            } else if t.kind() == TokenType::ClosingParaenthesis {
+            } else if t.kind() == TokenType::ClosingParenthesis {
                 while !stack.is_empty()
                     && stack.last().unwrap().kind() != TokenType::OpeningParenthesis
                 {
@@ -498,7 +498,7 @@ mod lexer_tests {
         assert_eq!(v[3].kind(), TokenType::Number);
         assert_eq!(v[3].value(), 6.0);
 
-        assert_eq!(v[4].kind(), TokenType::ClosingParaenthesis);
+        assert_eq!(v[4].kind(), TokenType::ClosingParenthesis);
     }
 
     #[test]
@@ -518,7 +518,7 @@ mod lexer_tests {
         assert_eq!(v[5].kind(), TokenType::Number);
         assert_eq!(v[5].value(), 6.0);
 
-        assert_eq!(v[6].kind(), TokenType::ClosingParaenthesis);
+        assert_eq!(v[6].kind(), TokenType::ClosingParenthesis);
     }
 
     #[test]
@@ -535,9 +535,9 @@ mod lexer_tests {
         assert_eq!(v[7].kind(), TokenType::Number);
         assert_eq!(v[8].kind(), TokenType::Multiply);
         assert_eq!(v[9].kind(), TokenType::Number);
-        assert_eq!(v[10].kind(), TokenType::ClosingParaenthesis);
-        assert_eq!(v[11].kind(), TokenType::ClosingParaenthesis);
-        assert_eq!(v[12].kind(), TokenType::ClosingParaenthesis);
+        assert_eq!(v[10].kind(), TokenType::ClosingParenthesis);
+        assert_eq!(v[11].kind(), TokenType::ClosingParenthesis);
+        assert_eq!(v[12].kind(), TokenType::ClosingParenthesis);
     }
 }
 
