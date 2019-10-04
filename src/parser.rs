@@ -207,10 +207,7 @@ pub mod calculator {
                 processing_numbers.push(t.value());
             }
             if t.is_operator() {
-                let r_operand = processing_numbers.pop();
-                let l_operand = processing_numbers.pop();
-                if let Some(r_op) = r_operand {
-                    if let Some(l_op) = l_operand {
+                if let (Some(r_op),Some(l_op)) = (processing_numbers.pop(), processing_numbers.pop()) {
                         let result: f64 = match t.kind() {
                             TokenType::Divide => l_op / r_op,
                             TokenType::Multiply => l_op * r_op,
@@ -220,7 +217,6 @@ pub mod calculator {
                             _ => return Err("Can not have number on operation stack"),
                         };
                         processing_numbers.push(result);
-                    }
                 }
             }
         }
